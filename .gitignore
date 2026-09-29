@@ -1,0 +1,22 @@
+# Build and Deploy
+/backend/target/
+/backend/build/
+/backend/out/
+/frontend/dist/
+/frontend/build/
+
+# IDE and Environment
+.idea/
+.vscode/
+*.iml
+.env
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
