@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: lifelinkai-backend
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/test
+
+jwt:
+  secret: averylongsecretkeyforjwtauthenticationthatissecure
+  expiration: 86400000
+
+server:
+  port: 8080
+
+cors:
+  allowed-origins: "*"

@@ -5,7 +5,7 @@ Intelligent Emergency Response & Healthcare Coordination Platform.
 ## Current Progress
 
 - Phase 1 — Foundation ✅
-- Phase 2 — Core Modules ⏳
+- Phase 2 — Core Modules ✅
 - Phase 3 — Emergency Engine ⏳
 - Phase 4 — Real-Time System ⏳
 - Phase 5 — Healthcare Resources ⏳
@@ -75,3 +75,5 @@ A Swagger/OpenAPI UI is available during development to explore the APIs. Once t
 - Registration, Login, and secure User Profile retrieval
 - Global error and validation handling
 - Basic professional healthcare UI with Landing, Login, Register, and Dashboard pages
+- Phase 2 Core Modules: Patient, Doctor, Hospital, Ambulance, Driver, and Admin CRUD operations
+- Role-specific dynamic dashboards connected to REST APIs
