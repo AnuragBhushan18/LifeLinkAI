@@ -1,0 +1,18 @@
+package com.lifelinkai.backend.model;
+
+public enum EmergencyStatus {
+    CREATED,
+    SEVERITY_ANALYZED,
+    AMBULANCE_SEARCHING,
+    AMBULANCE_ASSIGNED,
+    GOING_TO_PATIENT,
+    ARRIVED_AT_PICKUP,
+    PATIENT_PICKED_UP,
+    GOING_TO_HOSPITAL,
+    ARRIVED_AT_HOSPITAL,
+    ADMITTED,
+    TREATMENT_IN_PROGRESS,
+    COMPLETED,
+    CANCELLED,
+    REJECTED
+}
