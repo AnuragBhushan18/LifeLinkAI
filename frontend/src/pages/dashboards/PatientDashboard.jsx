@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Activity, AlertCircle, Phone, Edit2, Save, ShieldAlert, HeartPulse } from 'lucide-react';
+import { User, Activity, AlertCircle, Phone, Edit2, Save, ShieldAlert, HeartPulse, Clock, MapPin } from 'lucide-react';
 import api from '../../services/api';
+import EmergencyModal from '../../components/EmergencyModal';
+import { emergencyService } from '../../services/entityServices';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -14,6 +16,9 @@ const PatientDashboard = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+  const [activeEmergency, setActiveEmergency] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -22,11 +27,28 @@ const PatientDashboard = () => {
         if (res.data) setProfile(res.data);
       } catch (error) {
         console.error("Error fetching patient profile", error);
-      } finally {
-        setLoading(false);
       }
     };
-    if (user?.id) fetchProfile();
+    
+    const fetchEmergencies = async () => {
+      try {
+        const res = await emergencyService.getAll();
+        if (res.data && res.data.length > 0) {
+          // Find the most recent active emergency
+          const active = res.data.find(e => !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(e.status));
+          if (active) setActiveEmergency(active);
+        }
+      } catch (error) {
+        console.error("Error fetching emergencies", error);
+      }
+    };
+
+    const loadData = async () => {
+      await Promise.all([fetchProfile(), fetchEmergencies()]);
+      setLoading(false);
+    };
+
+    if (user?.id) loadData();
   }, [user.id]);
 
   const handleChange = (e) => {
@@ -128,23 +150,75 @@ const PatientDashboard = () => {
             </span>
           </div>
 
-          <div className="bg-red-50 rounded-2xl shadow-sm border border-red-100 p-6 text-center">
-            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle size={32} />
+          {activeEmergency ? (
+            <div className="bg-red-50 rounded-2xl shadow-sm border border-red-200 p-6">
+              <div className="flex items-center gap-2 text-red-700 font-bold mb-4">
+                <HeartPulse size={24} className="animate-pulse" />
+                <h3 className="text-xl">Active Emergency</h3>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between items-center bg-white p-3 rounded border border-red-100">
+                  <span className="text-gray-600 text-sm">Status</span>
+                  <span className="font-bold text-red-700">{activeEmergency.status}</span>
+                </div>
+                <div className="flex justify-between items-center bg-white p-3 rounded border border-red-100">
+                  <span className="text-gray-600 text-sm">Severity</span>
+                  <span className="font-bold text-red-700">{activeEmergency.severity || 'Analyzing...'}</span>
+                </div>
+                {activeEmergency.recommendedHospitalId && (
+                  <div className="flex justify-between items-center bg-white p-3 rounded border border-red-100">
+                    <span className="text-gray-600 text-sm">Hospital Assigned</span>
+                    <span className="font-bold text-green-700">Yes</span>
+                  </div>
+                )}
+                {activeEmergency.assignedAmbulanceId && (
+                  <div className="flex justify-between items-center bg-white p-3 rounded border border-red-100">
+                    <span className="text-gray-600 text-sm">Ambulance Assigned</span>
+                    <span className="font-bold text-green-700">Yes</span>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={async () => {
+                  if(window.confirm('Are you sure you want to cancel this emergency request?')) {
+                    try {
+                      await emergencyService.cancel(activeEmergency.id);
+                      setActiveEmergency(null);
+                    } catch (e) { alert('Failed to cancel'); }
+                  }
+                }}
+                className="w-full bg-white text-red-600 border border-red-600 hover:bg-red-50 py-2 rounded-lg font-semibold transition-colors"
+              >
+                Cancel Request
+              </button>
             </div>
-            <h3 className="text-lg font-bold text-red-800 mb-2">Emergency SOS</h3>
-            <p className="text-sm text-red-600 mb-4">
-              Instantly alert hospitals and ambulances in your vicinity.
-            </p>
-            <button className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold text-lg shadow-md transition-all active:scale-95 flex justify-center items-center gap-2">
-              <HeartPulse size={24} /> ACTIVATE SOS
-            </button>
-            <p className="text-xs text-red-500 mt-3 font-medium flex items-center justify-center gap-1">
-              <ShieldAlert size={14} /> Coming in Phase 3
-            </p>
-          </div>
+          ) : (
+            <div className="bg-red-50 rounded-2xl shadow-sm border border-red-100 p-6 text-center">
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-red-800 mb-2">Emergency SOS</h3>
+              <p className="text-sm text-red-600 mb-4">
+                Instantly alert hospitals and ambulances in your vicinity.
+              </p>
+              <button 
+                onClick={() => setIsEmergencyModalOpen(true)}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold text-lg shadow-md transition-all active:scale-95 flex justify-center items-center gap-2"
+              >
+                <HeartPulse size={24} /> ACTIVATE SOS
+              </button>
+            </div>
+          )}
         </div>
       </div>
+      
+      <EmergencyModal 
+        isOpen={isEmergencyModalOpen} 
+        onClose={() => setIsEmergencyModalOpen(false)} 
+        onCreated={(emergency) => setActiveEmergency(emergency)}
+      />
     </div>
   );
 };

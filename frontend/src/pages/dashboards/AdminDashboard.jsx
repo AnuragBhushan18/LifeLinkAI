@@ -5,24 +5,43 @@ import api from '../../services/api';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('emergencies');
   const [stats, setStats] = useState({
     users: 0,
     hospitals: 0,
     doctors: 0,
-    ambulances: 0
+    ambulances: 0,
+    emergencies: 0
   });
+  const [emergencies, setEmergencies] = useState([]);
 
   useEffect(() => {
     setStats({
       users: 124,
       hospitals: 12,
       doctors: 45,
-      ambulances: 28
+      ambulances: 28,
+      emergencies: 0
     });
+    
+    const fetchEmergencies = async () => {
+      try {
+        const { emergencyService } = await import('../../services/entityServices');
+        const res = await emergencyService.getAll();
+        if (res.data) {
+          setEmergencies(res.data);
+          setStats(s => ({...s, emergencies: res.data.length}));
+        }
+      } catch (error) {
+        console.error("Error fetching emergencies", error);
+      }
+    };
+    
+    fetchEmergencies();
   }, []);
 
   const tabs = [
+    { id: 'emergencies', label: 'Emergencies', icon: Shield },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'hospitals', label: 'Hospitals', icon: Building },
     { id: 'doctors', label: 'Doctors', icon: Activity },
@@ -107,44 +126,91 @@ const AdminDashboard = () => {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 tracking-wider">
-                <th className="px-6 py-4 font-medium">ID</th>
-                <th className="px-6 py-4 font-medium">Name</th>
-                <th className="px-6 py-4 font-medium">Status / Role</th>
-                <th className="px-6 py-4 font-medium">Date Added</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-500">#UID-001</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">John Doe</td>
-                <td className="px-6 py-4 text-sm"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">PATIENT</span></td>
-                <td className="px-6 py-4 text-sm text-gray-500">2026-09-28</td>
-                <td className="px-6 py-4 text-sm text-right space-x-2">
-                  <button className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
-                  <button className="text-gray-400 hover:text-green-600 transition-colors"><Edit size={18} /></button>
-                  <button className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-500">#UID-002</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">City Hospital</td>
-                <td className="px-6 py-4 text-sm"><span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">HOSPITAL</span></td>
-                <td className="px-6 py-4 text-sm text-gray-500">2026-09-29</td>
-                <td className="px-6 py-4 text-sm text-right space-x-2">
-                  <button className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
-                  <button className="text-gray-400 hover:text-green-600 transition-colors"><Edit size={18} /></button>
-                  <button className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
-                </td>
-              </tr>
-              {/* More placeholder rows can go here */}
-            </tbody>
-          </table>
+          {activeTab === 'emergencies' ? (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 tracking-wider">
+                  <th className="px-6 py-4 font-medium">ID</th>
+                  <th className="px-6 py-4 font-medium">Patient</th>
+                  <th className="px-6 py-4 font-medium">Severity</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium">Created At</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {emergencies.map(em => (
+                  <tr key={em.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-mono text-gray-500">{em.id.slice(-6)}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{em.patientId.slice(-6)}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        em.severity === 'CRITICAL' ? 'bg-red-100 text-red-800' :
+                        em.severity === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                        em.severity === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {em.severity}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium">{em.status}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(em.createdAt).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm text-right space-x-2">
+                      <button className="text-gray-400 hover:text-blue-600 transition-colors" title="Process Emergency">
+                        <Activity size={18} onClick={async () => {
+                            const { emergencyService } = await import('../../services/entityServices');
+                            try {
+                                await api.post(`/emergencies/${em.id}/process`);
+                                window.location.reload();
+                            } catch (e) { alert('Failed to process'); }
+                        }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 tracking-wider">
+                  <th className="px-6 py-4 font-medium">ID</th>
+                  <th className="px-6 py-4 font-medium">Name</th>
+                  <th className="px-6 py-4 font-medium">Status / Role</th>
+                  <th className="px-6 py-4 font-medium">Date Added</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-500">#UID-001</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">John Doe</td>
+                  <td className="px-6 py-4 text-sm"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">PATIENT</span></td>
+                  <td className="px-6 py-4 text-sm text-gray-500">2026-09-28</td>
+                  <td className="px-6 py-4 text-sm text-right space-x-2">
+                    <button className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
+                    <button className="text-gray-400 hover:text-green-600 transition-colors"><Edit size={18} /></button>
+                    <button className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-500">#UID-002</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">City Hospital</td>
+                  <td className="px-6 py-4 text-sm"><span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">HOSPITAL</span></td>
+                  <td className="px-6 py-4 text-sm text-gray-500">2026-09-29</td>
+                  <td className="px-6 py-4 text-sm text-right space-x-2">
+                    <button className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18} /></button>
+                    <button className="text-gray-400 hover:text-green-600 transition-colors"><Edit size={18} /></button>
+                    <button className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
+                  </td>
+                </tr>
+                {/* More placeholder rows can go here */}
+              </tbody>
+            </table>
+          )}
+          
           <div className="px-6 py-4 border-t border-gray-100 text-center">
-            <p className="text-sm text-gray-500">Showing dummy data. Actual API integration pending.</p>
+            {activeTab !== 'emergencies' && <p className="text-sm text-gray-500">Showing dummy data. Actual API integration pending.</p>}
           </div>
         </div>
       </div>

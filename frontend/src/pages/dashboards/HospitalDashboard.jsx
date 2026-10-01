@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Building2, Activity, Edit2, Save, Users, Truck } from 'lucide-react';
+import { Building2, Activity, Edit2, Save, Users, Truck, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
+import { emergencyService } from '../../services/entityServices';
 
 const HospitalDashboard = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const HospitalDashboard = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [emergencies, setEmergencies] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,11 +26,24 @@ const HospitalDashboard = () => {
         if (res.data) setProfile(res.data);
       } catch (error) {
         console.error("Error fetching hospital profile", error);
-      } finally {
-        setLoading(false);
       }
     };
-    if (user?.id) fetchProfile();
+    
+    const fetchEmergencies = async () => {
+      try {
+        const res = await emergencyService.getAll();
+        if (res.data) setEmergencies(res.data);
+      } catch (error) {
+        console.error("Error fetching emergencies", error);
+      }
+    };
+
+    const loadData = async () => {
+      await Promise.all([fetchProfile(), fetchEmergencies()]);
+      setLoading(false);
+    };
+
+    if (user?.id) loadData();
   }, [user.id]);
 
   const handleChange = (e) => {
@@ -170,6 +185,80 @@ const HospitalDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Emergency Queue Section */}
+      <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-red-600">
+          <AlertCircle size={24} /> Emergency Queue
+        </h2>
+        
+        {emergencies.length === 0 ? (
+          <p className="text-gray-500 text-center py-6">No incoming emergencies at this time.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-3 px-4 font-semibold text-gray-600">ID</th>
+                  <th className="py-3 px-4 font-semibold text-gray-600">Severity</th>
+                  <th className="py-3 px-4 font-semibold text-gray-600">Status</th>
+                  <th className="py-3 px-4 font-semibold text-gray-600">Symptoms</th>
+                  <th className="py-3 px-4 font-semibold text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {emergencies.map(em => (
+                  <tr key={em.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 font-mono text-sm">{em.id.slice(-6)}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        em.severity === 'CRITICAL' ? 'bg-red-100 text-red-800' :
+                        em.severity === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                        em.severity === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {em.severity}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm font-medium">{em.status}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 max-w-xs truncate">
+                      {em.symptoms?.join(', ')}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        {em.status === 'ARRIVED_AT_HOSPITAL' && (
+                          <button 
+                            onClick={() => emergencyService.updateStatus(em.id, 'ADMITTED').then(() => window.location.reload())}
+                            className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
+                          >
+                            Admit Patient
+                          </button>
+                        )}
+                        {em.status === 'ADMITTED' && (
+                          <button 
+                            onClick={() => emergencyService.updateStatus(em.id, 'TREATMENT_IN_PROGRESS').then(() => window.location.reload())}
+                            className="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700"
+                          >
+                            Start Treatment
+                          </button>
+                        )}
+                        {em.status === 'TREATMENT_IN_PROGRESS' && (
+                          <button 
+                            onClick={() => emergencyService.updateStatus(em.id, 'COMPLETED').then(() => window.location.reload())}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-green-700"
+                          >
+                            Mark Complete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

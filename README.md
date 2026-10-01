@@ -1,17 +1,17 @@
-# LifeLink AI
+﻿# LifeLink AI
 
 Intelligent Emergency Response & Healthcare Coordination Platform.
 
 ## Current Progress
 
-- Phase 1 — Foundation ✅
-- Phase 2 — Core Modules ✅
-- Phase 3 — Emergency Engine ⏳
-- Phase 4 — Real-Time System ⏳
-- Phase 5 — Healthcare Resources ⏳
-- Phase 6 — AI/LLM ⏳
-- Phase 7 — Analytics ⏳
-- Phase 8 — Production Readiness ⏳
+- Phase 1 â€” Foundation âœ…
+- Phase 2 â€” Core Modules âœ…
+- Phase 3 - Emergency Engine ✅
+- Phase 4 â€” Real-Time System â³
+- Phase 5 â€” Healthcare Resources â³
+- Phase 6 â€” AI/LLM â³
+- Phase 7 â€” Analytics â³
+- Phase 8 â€” Production Readiness â³
 
 ## Tech Stack
 
@@ -77,3 +77,13 @@ A Swagger/OpenAPI UI is available during development to explore the APIs. Once t
 - Basic professional healthcare UI with Landing, Login, Register, and Dashboard pages
 - Phase 2 Core Modules: Patient, Doctor, Hospital, Ambulance, Driver, and Admin CRUD operations
 - Role-specific dynamic dashboards connected to REST APIs
+
+
+### Phase 3 - Emergency Engine
+- Emergency workflow implementation (deterministic rule-based decision logic)
+- Severity engine to rank SOS
+- Hospital scoring and recommendation (using estimated ETA, not live routing)
+- Ambulance allocation and dispatch
+- Emergency state machine validation
+- Dashboards updated to display active emergencies and SOS button
+- Note: No clinical diagnosis or live tracking API is used in this phase.

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Truck, Navigation, Phone, Edit2, Save, MapPin } from 'lucide-react';
+import { Truck, Navigation, Phone, Edit2, Save, MapPin, AlertTriangle } from 'lucide-react';
 import api from '../../services/api';
+import { emergencyService } from '../../services/entityServices';
 
 const DriverDashboard = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ const DriverDashboard = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeEmergency, setActiveEmergency] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,11 +22,27 @@ const DriverDashboard = () => {
         if (res.data) setProfile(res.data);
       } catch (error) {
         console.error("Error fetching driver profile", error);
-      } finally {
-        setLoading(false);
       }
     };
-    if (user?.id) fetchProfile();
+    
+    const fetchEmergencies = async () => {
+      try {
+        const res = await emergencyService.getAll();
+        if (res.data && res.data.length > 0) {
+          const active = res.data.find(e => !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(e.status));
+          if (active) setActiveEmergency(active);
+        }
+      } catch (error) {
+        console.error("Error fetching emergencies", error);
+      }
+    };
+
+    const loadData = async () => {
+      await Promise.all([fetchProfile(), fetchEmergencies()]);
+      setLoading(false);
+    };
+
+    if (user?.id) loadData();
   }, [user.id]);
 
   const handleChange = (e) => {
@@ -127,17 +145,87 @@ const DriverDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-2xl shadow-sm border border-blue-100 p-6 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2">
-                <Navigation size={20} /> Active Dispatch
-              </h3>
-              <p className="text-blue-700 text-sm">No active emergencies assigned at the moment.</p>
+          {activeEmergency ? (
+            <div className="bg-red-50 rounded-2xl shadow-sm border border-red-200 p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-bold text-red-800 flex items-center gap-2">
+                  <AlertTriangle size={24} /> Active Emergency Dispatch
+                </h3>
+                <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                  {activeEmergency.severity}
+                </span>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg border border-red-100 space-y-3 mb-6">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-gray-500">Status</span>
+                  <span className="font-bold text-red-700">{activeEmergency.status}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-gray-500">Emergency ID</span>
+                  <span className="font-mono text-gray-800 text-sm">{activeEmergency.id}</span>
+                </div>
+                <div className="pt-2">
+                  <span className="text-gray-500 block mb-1">Symptoms</span>
+                  <div className="flex flex-wrap gap-1">
+                    {activeEmergency.symptoms?.map(s => (
+                      <span key={s} className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => emergencyService.updateStatus(activeEmergency.id, 'GOING_TO_PATIENT').then(() => window.location.reload())}
+                  disabled={activeEmergency.status !== 'AMBULANCE_ASSIGNED'}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Going to Patient
+                </button>
+                <button 
+                  onClick={() => emergencyService.updateStatus(activeEmergency.id, 'ARRIVED_AT_PICKUP').then(() => window.location.reload())}
+                  disabled={activeEmergency.status !== 'GOING_TO_PATIENT'}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Arrived at Pickup
+                </button>
+                <button 
+                  onClick={() => emergencyService.updateStatus(activeEmergency.id, 'PATIENT_PICKED_UP').then(() => window.location.reload())}
+                  disabled={activeEmergency.status !== 'ARRIVED_AT_PICKUP'}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Patient Picked Up
+                </button>
+                <button 
+                  onClick={() => emergencyService.updateStatus(activeEmergency.id, 'GOING_TO_HOSPITAL').then(() => window.location.reload())}
+                  disabled={activeEmergency.status !== 'PATIENT_PICKED_UP'}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Going to Hospital
+                </button>
+                <button 
+                  onClick={() => emergencyService.updateStatus(activeEmergency.id, 'ARRIVED_AT_HOSPITAL').then(() => window.location.reload())}
+                  disabled={activeEmergency.status !== 'GOING_TO_HOSPITAL'}
+                  className="col-span-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Arrived at Hospital
+                </button>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-              <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+          ) : (
+            <div className="bg-blue-50 rounded-2xl shadow-sm border border-blue-100 p-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2">
+                  <Navigation size={20} /> Active Dispatch
+                </h3>
+                <p className="text-blue-700 text-sm">No active emergencies assigned at the moment.</p>
+              </div>
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
