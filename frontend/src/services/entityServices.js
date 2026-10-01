@@ -27,3 +27,12 @@ export const adminService = {
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
   // Additional admin methods will go here
 };
+
+export const emergencyService = {
+  create: (data) => api.post('/emergencies', data),
+  getAll: () => api.get('/emergencies'),
+  getById: (id) => api.get(`/emergencies/${id}`),
+  updateStatus: (id, status) => api.patch(`/emergencies/${id}/status?status=${status}`),
+  cancel: (id) => api.post(`/emergencies/${id}/cancel`),
+};
+
