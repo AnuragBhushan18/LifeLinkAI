@@ -4,6 +4,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/lifelinkai}
+      database: lifelinkai
 
 jwt:
   secret: ${JWT_SECRET:8f4a3e7b2c9d1e5f8a4b6c3d9e2f1a7b8c5d3e2f9a1b4c7d6e8f0a2b5c8d1e4f}

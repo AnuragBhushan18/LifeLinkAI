@@ -7,6 +7,7 @@ const EmergencyModal = ({ isOpen, onClose, onCreated }) => {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [locationMode, setLocationMode] = useState('demo'); // 'demo' | 'device'
   
   if (!isOpen) return null;
 
@@ -15,36 +16,49 @@ const EmergencyModal = ({ isOpen, onClose, onCreated }) => {
     setLoading(true);
     setLocationError('');
     
+    const submitWithCoords = async (latitude, longitude) => {
+      try {
+        const reqData = {
+          latitude,
+          longitude,
+          symptoms: symptoms.split(',').map(s => s.trim()).filter(s => s),
+          emergencyDescription: description
+        };
+        
+        const res = await emergencyService.create(reqData);
+        onCreated(res.data);
+        onClose();
+      } catch (error) {
+        console.error("Error creating emergency", error);
+        alert(error.response?.data?.message || "Failed to create emergency");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (locationMode === 'demo') {
+      // Generate realistic coordinates near the demo fleet coverage zone (NYC)
+      // Produces realistic 1.0 - 2.5 km distance and ~2 - 5 min ETA
+      const jitterLat = 40.7180 + (Math.random() - 0.5) * 0.012;
+      const jitterLon = -74.0040 + (Math.random() - 0.5) * 0.012;
+      submitWithCoords(Math.round(jitterLat * 10000) / 10000, Math.round(jitterLon * 10000) / 10000);
+      return;
+    }
+
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser');
-      setLoading(false);
+      submitWithCoords(40.7128, -74.0060);
       return;
     }
     
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const reqData = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            symptoms: symptoms.split(',').map(s => s.trim()).filter(s => s),
-            emergencyDescription: description
-          };
-          
-          const res = await emergencyService.create(reqData);
-          onCreated(res.data);
-          onClose();
-        } catch (error) {
-          console.error("Error creating emergency", error);
-          alert("Failed to create emergency");
-        } finally {
-          setLoading(false);
-        }
+      (position) => {
+        submitWithCoords(position.coords.latitude, position.coords.longitude);
       },
       (error) => {
-        setLocationError('Unable to retrieve your location. Location access is required for emergencies.');
-        setLoading(false);
-      }
+        console.warn('Geolocation unavailable/denied, falling back to default coordinates', error);
+        submitWithCoords(40.7128, -74.0060);
+      },
+      { timeout: 5000 }
     );
   };
 
@@ -87,6 +101,56 @@ const EmergencyModal = ({ isOpen, onClose, onCreated }) => {
             ></textarea>
           </div>
           
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Pickup Location Mode</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLocationMode('demo')}
+                className={`p-2.5 rounded-xl border text-left transition-all ${
+                  locationMode === 'demo'
+                    ? 'border-red-500 bg-red-50/60 ring-1 ring-red-500/50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <MapPin size={15} className={locationMode === 'demo' ? 'text-red-600' : 'text-gray-400'} />
+                  <span className={`text-xs font-bold ${locationMode === 'demo' ? 'text-red-900' : 'text-gray-700'}`}>
+                    Demo Fleet Area
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-tight">
+                  NYC Service Zone (~2–5 min ETA)
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLocationMode('device')}
+                className={`p-2.5 rounded-xl border text-left transition-all ${
+                  locationMode === 'device'
+                    ? 'border-red-500 bg-red-50/60 ring-1 ring-red-500/50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <MapPin size={15} className={locationMode === 'device' ? 'text-red-600' : 'text-gray-400'} />
+                  <span className={`text-xs font-bold ${locationMode === 'device' ? 'text-red-900' : 'text-gray-700'}`}>
+                    Device GPS
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-tight">
+                  Real Browser Geolocation
+                </p>
+              </button>
+            </div>
+            {locationMode === 'device' && (
+              <p className="text-[11px] text-amber-600 mt-1.5 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                Notice: The demo hospital and ambulance fleet are in New York. If your device is outside NYC, distance will reflect your true distance.
+              </p>
+            )}
+          </div>
+
           {locationError && (
             <div className="p-3 bg-red-50 text-red-700 text-sm rounded-md flex items-start gap-2">
               <MapPin size={16} className="mt-0.5 shrink-0" />
