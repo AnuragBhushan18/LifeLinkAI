@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface AmbulanceRepository extends MongoRepository<Ambulance, String> {
     Optional<Ambulance> findByVehicleNumber(String vehicleNumber);
     List<Ambulance> findByHospitalId(String hospitalId);
+    List<Ambulance> findByDriverId(String driverId);
+    Optional<Ambulance> findFirstByDriverId(String driverId);
 }

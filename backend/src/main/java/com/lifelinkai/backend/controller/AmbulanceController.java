@@ -38,6 +38,16 @@ public class AmbulanceController {
         return ResponseEntity.ok(service.save(entity));
     }
 
+    private final com.lifelinkai.backend.service.AmbulanceLocationService ambulanceLocationService;
+
+    @PostMapping("/location")
+    @Operation(summary = "Update Driver Ambulance Location")
+    public ResponseEntity<com.lifelinkai.backend.dto.AmbulanceLocationResponse> updateLocation(
+            @jakarta.validation.Valid @RequestBody com.lifelinkai.backend.dto.AmbulanceLocationRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.lifelinkai.backend.security.CustomUserDetails userDetails) {
+        return ResponseEntity.ok(ambulanceLocationService.updateDriverLocation(userDetails.getUsername(), request));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Ambulance")
     public ResponseEntity<Void> delete(@PathVariable String id) {
