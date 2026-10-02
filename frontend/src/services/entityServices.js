@@ -28,10 +28,17 @@ export const adminService = {
   // Additional admin methods will go here
 };
 
+export const ambulanceService = {
+  getAll: () => api.get('/ambulances'),
+  getById: (id) => api.get(`/ambulances/${id}`),
+  updateLocation: (data) => api.post('/ambulances/location', data),
+};
+
 export const emergencyService = {
   create: (data) => api.post('/emergencies', data),
   getAll: () => api.get('/emergencies'),
   getById: (id) => api.get(`/emergencies/${id}`),
+  getTimeline: (id) => api.get(`/emergencies/${id}/timeline`),
   updateStatus: (id, status) => api.patch(`/emergencies/${id}/status?status=${status}`),
   cancel: (id) => api.post(`/emergencies/${id}/cancel`),
 };
