@@ -3,7 +3,7 @@ spring:
     name: lifelinkai-backend
   data:
     mongodb:
-      uri: mongodb://localhost:27017/test
+      uri: mongodb://localhost:27017/lifelinkai_test
 
 jwt:
   secret: averylongsecretkeyforjwtauthenticationthatissecure
