@@ -14,5 +14,12 @@ public class DriverService {
     public List<Driver> findAll() { return repository.findAll(); }
     public Driver findById(String id) { return repository.findById(id).orElseThrow(() -> new RuntimeException("Driver not found")); }
     public void deleteById(String id) { repository.deleteById(id); }
-    public Driver findByUserId(String userId) { return repository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Driver not found for user ID")); }
+    public Driver findByUserId(String userId) { 
+        return repository.findByUserId(userId).orElseGet(() -> {
+            Driver d = new Driver();
+            d.setUserId(userId);
+            d.setAvailability(com.lifelinkai.backend.model.Availability.AVAILABLE);
+            return repository.save(d);
+        }); 
+    }
 }

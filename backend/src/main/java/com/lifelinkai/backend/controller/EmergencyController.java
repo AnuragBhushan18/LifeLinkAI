@@ -24,6 +24,9 @@ public class EmergencyController {
     private final EmergencyService emergencyService;
     private final UserRepository userRepository;
 
+    private final com.lifelinkai.backend.repository.DriverRepository driverRepository;
+    private final com.lifelinkai.backend.repository.HospitalRepository hospitalRepository;
+
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<EmergencyRequest> createEmergency(
@@ -33,9 +36,6 @@ public class EmergencyController {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
                 
-        // In Phase 2, patient id was likely user id or separate Patient entity.
-        // Assuming patientId is user.getId() for now, or we need to find the Patient entity.
-        // I will just use user.getId() as the patientId.
         EmergencyRequest emergency = emergencyService.createEmergency(user.getId(), request);
         return ResponseEntity.ok(emergency);
     }
@@ -66,17 +66,34 @@ public class EmergencyController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
             
         EmergencyRequest emergency = emergencyService.getEmergency(id);
-        
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
                 
-        // Basic authorization check
-        if (user.getRole() == Role.PATIENT && !emergency.getPatientId().equals(user.getId())) {
+        if (user.getRole() == Role.PATIENT && !user.getId().equals(emergency.getPatientId())) {
             return ResponseEntity.status(403).build();
+        } else if (user.getRole() == Role.AMBULANCE_DRIVER) {
+            boolean matches = user.getId().equals(emergency.getAssignedDriverId()) ||
+                    driverRepository.findByUserId(user.getId())
+                            .map(d -> d.getId().equals(emergency.getAssignedDriverId()))
+                            .orElse(false);
+            if (!matches) return ResponseEntity.status(403).build();
+        } else if (user.getRole() == Role.HOSPITAL_STAFF) {
+            boolean matches = user.getId().equals(emergency.getRecommendedHospitalId()) ||
+                    hospitalRepository.findByUserId(user.getId())
+                            .map(h -> h.getId().equals(emergency.getRecommendedHospitalId()))
+                            .orElse(false);
+            if (!matches) return ResponseEntity.status(403).build();
         }
-        // Add other role checks if needed
         
         return ResponseEntity.ok(emergency);
+    }
+
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<List<com.lifelinkai.backend.model.EmergencyTimelineEvent>> getTimeline(
+            @PathVariable String id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        EmergencyRequest emergency = emergencyService.getEmergency(id);
+        return ResponseEntity.ok(emergency.getTimeline() != null ? emergency.getTimeline() : List.of());
     }
     
     @PostMapping("/{id}/process")
@@ -92,9 +109,30 @@ public class EmergencyController {
             @RequestParam EmergencyStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
             
-        // Authorization should check if the driver or hospital owns this emergency
-        EmergencyRequest emergency = emergencyService.updateEmergencyStatus(id, status);
-        return ResponseEntity.ok(emergency);
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        EmergencyRequest emergency = emergencyService.getEmergency(id);
+
+        if (user.getRole() == Role.PATIENT) {
+            if (!user.getId().equals(emergency.getPatientId()) || status != EmergencyStatus.CANCELLED) {
+                return ResponseEntity.status(403).build();
+            }
+        } else if (user.getRole() == Role.AMBULANCE_DRIVER) {
+            boolean matches = user.getId().equals(emergency.getAssignedDriverId()) ||
+                    driverRepository.findByUserId(user.getId())
+                            .map(d -> d.getId().equals(emergency.getAssignedDriverId()))
+                            .orElse(false);
+            if (!matches) return ResponseEntity.status(403).build();
+        } else if (user.getRole() == Role.HOSPITAL_STAFF) {
+            boolean matches = user.getId().equals(emergency.getRecommendedHospitalId()) ||
+                    hospitalRepository.findByUserId(user.getId())
+                            .map(h -> h.getId().equals(emergency.getRecommendedHospitalId()))
+                            .orElse(false);
+            if (!matches) return ResponseEntity.status(403).build();
+        }
+
+        EmergencyRequest updated = emergencyService.updateEmergencyStatus(id, status);
+        return ResponseEntity.ok(updated);
     }
     
     @PostMapping("/{id}/cancel")

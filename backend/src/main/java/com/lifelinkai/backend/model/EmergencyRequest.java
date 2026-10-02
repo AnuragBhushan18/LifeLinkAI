@@ -51,4 +51,12 @@ public class EmergencyRequest {
     private LocalDateTime hospitalAcceptedAt;
     private LocalDateTime ambulanceAssignedAt;
     private LocalDateTime completedAt;
+
+    private Double currentAmbulanceLatitude;
+    private Double currentAmbulanceLongitude;
+    private Double estimatedEtaMinutes;
+    private Double estimatedDistanceKm;
+
+    @Builder.Default
+    private java.util.List<EmergencyTimelineEvent> timeline = new java.util.ArrayList<>();
 }

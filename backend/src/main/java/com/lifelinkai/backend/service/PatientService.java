@@ -14,5 +14,11 @@ public class PatientService {
     public List<Patient> findAll() { return repository.findAll(); }
     public Patient findById(String id) { return repository.findById(id).orElseThrow(() -> new RuntimeException("Patient not found")); }
     public void deleteById(String id) { repository.deleteById(id); }
-    public Patient findByUserId(String userId) { return repository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Patient not found for user ID")); }
+    public Patient findByUserId(String userId) { 
+        return repository.findByUserId(userId).orElseGet(() -> {
+            Patient p = new Patient();
+            p.setUserId(userId);
+            return repository.save(p);
+        }); 
+    }
 }

@@ -14,5 +14,15 @@ public class HospitalService {
     public List<Hospital> findAll() { return repository.findAll(); }
     public Hospital findById(String id) { return repository.findById(id).orElseThrow(() -> new RuntimeException("Hospital not found")); }
     public void deleteById(String id) { repository.deleteById(id); }
-    public Hospital findByUserId(String userId) { return repository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Hospital not found for user ID")); }
+    public Hospital findByUserId(String userId) { 
+        return repository.findByUserId(userId).orElseGet(() -> {
+            Hospital h = new Hospital();
+            h.setUserId(userId);
+            h.setName("General Hospital");
+            h.setOperationalStatus(com.lifelinkai.backend.model.OperationalStatus.ACTIVE);
+            h.setLatitude(40.7306);
+            h.setLongitude(-73.9352);
+            return repository.save(h);
+        }); 
+    }
 }
