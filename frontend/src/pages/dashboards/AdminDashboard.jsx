@@ -3,30 +3,25 @@ import { useAuth } from '../../context/AuthContext';
 import { Shield, Users, Activity, Building, Truck, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 
+import emergencyRealtimeService from '../../services/emergencyRealtimeService';
+import ConnectionBadge from '../../components/ConnectionBadge';
+import { emergencyService } from '../../services/entityServices';
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('emergencies');
   const [stats, setStats] = useState({
-    users: 0,
-    hospitals: 0,
-    doctors: 0,
-    ambulances: 0,
+    users: 124,
+    hospitals: 12,
+    doctors: 45,
+    ambulances: 28,
     emergencies: 0
   });
   const [emergencies, setEmergencies] = useState([]);
 
   useEffect(() => {
-    setStats({
-      users: 124,
-      hospitals: 12,
-      doctors: 45,
-      ambulances: 28,
-      emergencies: 0
-    });
-    
     const fetchEmergencies = async () => {
       try {
-        const { emergencyService } = await import('../../services/entityServices');
         const res = await emergencyService.getAll();
         if (res.data) {
           setEmergencies(res.data);
@@ -38,6 +33,26 @@ const AdminDashboard = () => {
     };
     
     fetchEmergencies();
+
+    // Real-time admin subscription
+    const unsubscribe = emergencyRealtimeService.subscribeToAdmin((event) => {
+      console.log('[AdminDashboard] Emergency event received:', event);
+      setEmergencies((prev) => {
+        const exists = prev.some((e) => e.id === event.emergencyId);
+        if (exists) {
+          return prev.map((e) =>
+            e.id === event.emergencyId
+              ? { ...e, status: event.status || e.status, severity: event.severity || e.severity }
+              : e
+          );
+        } else {
+          fetchEmergencies();
+          return prev;
+        }
+      });
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const tabs = [
@@ -51,10 +66,16 @@ const AdminDashboard = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">System Administration</h1>
-        <span className="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full font-semibold flex items-center gap-2">
-          <Shield size={16} /> Super Admin Access
-        </span>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">System Administration</h1>
+          <p className="text-sm text-gray-500 mt-1">Real-time emergency monitoring & system operations</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <ConnectionBadge />
+          <span className="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full font-semibold flex items-center gap-2">
+            <Shield size={16} /> Super Admin Access
+          </span>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -158,10 +179,8 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <button className="text-gray-400 hover:text-blue-600 transition-colors" title="Process Emergency">
                         <Activity size={18} onClick={async () => {
-                            const { emergencyService } = await import('../../services/entityServices');
                             try {
                                 await api.post(`/emergencies/${em.id}/process`);
-                                window.location.reload();
                             } catch (e) { alert('Failed to process'); }
                         }} />
                       </button>
