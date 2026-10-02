@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HeartPulse } from 'lucide-react';
+import ConnectionBadge from './ConnectionBadge';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -25,6 +27,8 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             {user ? (
               <>
+                <ConnectionBadge />
+                <NotificationDropdown />
                 <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">Dashboard</Link>
                 <button 
                   onClick={handleLogout}
