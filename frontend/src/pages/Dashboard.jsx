@@ -5,6 +5,8 @@ import DoctorDashboard from './dashboards/DoctorDashboard';
 import HospitalDashboard from './dashboards/HospitalDashboard';
 import DriverDashboard from './dashboards/DriverDashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
+import BloodBankDashboard from './dashboards/BloodBankDashboard';
+import PharmacyDashboard from './dashboards/PharmacyDashboard';
 import { ShieldAlert, Zap } from 'lucide-react';
 
 const Dashboard = () => {
@@ -23,6 +25,10 @@ const Dashboard = () => {
         return <DriverDashboard />;
       case 'ADMIN':
         return <AdminDashboard />;
+      case 'BLOOD_BANK':
+        return <BloodBankDashboard />;
+      case 'PHARMACY':
+        return <PharmacyDashboard />;
       default:
         return (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col items-center justify-center text-center min-h-[300px]">

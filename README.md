@@ -8,7 +8,7 @@ Intelligent Emergency Response & Healthcare Coordination Platform.
 - Phase 2 — Core Modules ✅
 - Phase 3 — Emergency Engine ✅
 - Phase 4 — Real-Time System ✅
-- Phase 5 — Healthcare Resources ⏳
+- Phase 5 — Healthcare Resources ✅
 - Phase 6 — AI/LLM ⏳
 - Phase 7 — Analytics ⏳
 - Phase 8 — Production Readiness ⏳
@@ -188,3 +188,18 @@ The frontend starts on `http://localhost:5173`.
    - Observe Navbar bell icon incrementing with unread badge in real-time.
    - Open dropdown to view milestone alerts ("Ambulance Dispatched", "Patient Boarded", "Ambulance Arrived at Hospital").
    - Check timeline updating step-by-step.
+
+---
+
+## Phase 5 — Healthcare Resources & Medical Records
+
+Phase 5 adds the foundational layer for managing hospital resources and patient medical data.
+
+- **Bed Management**: APIs and logic to manage hospital beds (`GENERAL`, `ICU`, `EMERGENCY`) and their states (`AVAILABLE`, `OCCUPIED`, `RESERVED`, `MAINTENANCE`). Includes real-time capacity tracking.
+- **Medical Records**: Securely manages patient medical history, clinician notes, medical reports, and prescriptions. Strict authorization ensures patients can view their records while only authorized doctors can edit them.
+- **Blood Bank**: Features to manage blood inventory across different blood groups and process emergency blood requests from hospitals. Validations prevent negative stock.
+- **Pharmacy**: Complete medicine inventory system with low-stock thresholds and expiration date tracking.
+- **Emergency Integration**: The emergency state machine now natively includes the `BED_RESERVED` state, connecting the ambulance arrival directly to resource allocation.
+- **Dashboard Support**: Extensible role-based dashboards (`BloodBankDashboard`, `PharmacyDashboard`) fully integrated with the existing frontend.
+
+_Note: The system relies strictly on explicit business rules and clinician input; no AI or LLM-based diagnosis has been implemented yet (scheduled for Phase 6)._
