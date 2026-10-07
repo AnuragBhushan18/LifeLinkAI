@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { User, Activity, Clock, MapPin, Edit2, Save, Award } from 'lucide-react';
 import api from '../../services/api';
 import DoctorAISummary from './DoctorAISummary';
-import DoctorAISummary from './DoctorAISummary';
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
@@ -16,7 +15,6 @@ const DoctorDashboard = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [searchPatientId, setSearchPatientId] = useState('');
   const [searchPatientId, setSearchPatientId] = useState('');
 
   useEffect(() => {
