@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Shield, Users, Activity, Building, Truck, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import api from '../../services/api';
+import AdminAIAssistant from './AdminAIAssistant';
 
 import emergencyRealtimeService from '../../services/emergencyRealtimeService';
 import ConnectionBadge from '../../components/ConnectionBadge';
@@ -232,7 +233,8 @@ const AdminDashboard = () => {
             {activeTab !== 'emergencies' && <p className="text-sm text-gray-500">Showing dummy data. Actual API integration pending.</p>}
           </div>
         </div>
-      </div>
+      <AdminAIAssistant />
+</div>
     </div>
   );
 };

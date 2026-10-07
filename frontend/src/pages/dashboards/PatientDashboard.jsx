@@ -18,6 +18,7 @@ import {
 import api from '../../services/api';
 import EmergencyModal from '../../components/EmergencyModal';
 import { emergencyService } from '../../services/entityServices';
+import PatientAIAssistant from './PatientAIAssistant';
 import emergencyRealtimeService from '../../services/emergencyRealtimeService';
 import websocketService from '../../services/websocketService';
 import LiveTrackingMap from '../../components/LiveTrackingMap';
@@ -471,7 +472,8 @@ const PatientDashboard = () => {
         </div>
       </div>
 
-      <EmergencyModal
+      <div className='mt-8'><PatientAIAssistant /></div>
+<EmergencyModal
         isOpen={isEmergencyModalOpen}
         onClose={() => setIsEmergencyModalOpen(false)}
         onCreated={(emergency) => {

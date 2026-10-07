@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { User, Activity, Clock, MapPin, Edit2, Save, Award } from 'lucide-react';
 import api from '../../services/api';
+import DoctorAISummary from './DoctorAISummary';
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ const DoctorDashboard = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchPatientId, setSearchPatientId] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -134,6 +136,21 @@ const DoctorDashboard = () => {
               </div>
             </div>
           </div>
+          
+          <div className="lg:col-span-3 mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-xl font-bold mb-4 text-blue-900">Patient Lookup & AI Summary</h2>
+            <div className="flex gap-4 mb-4">
+                <input 
+                    type="text" 
+                    value={searchPatientId} 
+                    onChange={e => setSearchPatientId(e.target.value)} 
+                    placeholder="Enter Patient ID (e.g. 64b8f...)" 
+                    className="border rounded px-3 py-2 flex-1 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+            {searchPatientId && <DoctorAISummary patientId={searchPatientId} />}
+          </div>
+          
         </div>
       </div>
     </div>
