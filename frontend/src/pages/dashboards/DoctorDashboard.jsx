@@ -10,7 +10,7 @@ const DoctorDashboard = () => {
     specialization: '',
     department: '',
     shift: '',
-    availabilityStatus: 'AVAILABLE',
+    availability: 'AVAILABLE',
     experienceYears: 0
   });
   const [isEditing, setIsEditing] = useState(false);
@@ -46,10 +46,10 @@ const DoctorDashboard = () => {
   };
 
   const toggleAvailability = async () => {
-    const newStatus = profile.availabilityStatus === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+    const newStatus = profile.availability === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
     try {
       await api.put(`/doctors/user/${user.id}/status`, { status: newStatus });
-      setProfile({ ...profile, availabilityStatus: newStatus });
+      setProfile({ ...profile, availability: newStatus });
     } catch (error) {
       console.error("Error updating status", error);
     }
@@ -79,9 +79,9 @@ const DoctorDashboard = () => {
             <p className="text-gray-500 mb-4">{profile.specialization || 'General Practitioner'}</p>
             
             <div className="flex items-center justify-center gap-2 mb-6">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${profile.availabilityStatus === 'AVAILABLE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                <span className={`w-2 h-2 rounded-full mr-2 ${profile.availabilityStatus === 'AVAILABLE' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                {profile.availabilityStatus}
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${profile.availability === 'AVAILABLE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <span className={`w-2 h-2 rounded-full mr-2 ${profile.availability === 'AVAILABLE' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                {profile.availability}
               </span>
             </div>
 

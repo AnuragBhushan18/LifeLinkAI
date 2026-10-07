@@ -14,5 +14,12 @@ public class DoctorService {
     public List<Doctor> findAll() { return repository.findAll(); }
     public Doctor findById(String id) { return repository.findById(id).orElseThrow(() -> new RuntimeException("Doctor not found")); }
     public void deleteById(String id) { repository.deleteById(id); }
-    public Doctor findByUserId(String userId) { return repository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Doctor not found for user ID")); }
+    public Doctor findByUserId(String userId) { 
+        return repository.findByUserId(userId).orElseGet(() -> {
+            Doctor d = new Doctor();
+            d.setUserId(userId);
+            d.setAvailability(com.lifelinkai.backend.model.Availability.AVAILABLE);
+            return repository.save(d);
+        });
+    }
 }
