@@ -23,7 +23,8 @@ const PatientAIAssistant = () => {
             
             setMessages(prev => [...prev, { role: 'assistant', content: res.data.response }]);
         } catch (err) {
-            setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I am unable to connect to the server right now." }]);
+            const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Unknown error";
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
         } finally {
             setLoading(false);
         }

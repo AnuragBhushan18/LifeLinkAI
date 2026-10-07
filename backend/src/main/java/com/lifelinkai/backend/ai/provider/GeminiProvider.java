@@ -22,7 +22,7 @@ public class GeminiProvider implements LLMProvider {
     @Value("${llm.provider.name:gemini}")
     private String providerName;
 
-    @Value("${llm.model.name:gemini-1.5-flash}")
+    @Value("${llm.model.name:gemini-flash-latest}")
     private String modelName;
 
     @Value("${llm.api.key:}")
