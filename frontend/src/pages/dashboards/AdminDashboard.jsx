@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Shield, Users, Activity, Building, Truck, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import AdminAIAssistant from './AdminAIAssistant';
+import AdminAIAssistant from './AdminAIAssistant';
 
 import emergencyRealtimeService from '../../services/emergencyRealtimeService';
 import ConnectionBadge from '../../components/ConnectionBadge';

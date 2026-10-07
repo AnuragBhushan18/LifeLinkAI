@@ -23,7 +23,7 @@ with open(transcript_path, 'r', encoding='utf-8') as f:
                         target_content = args.get('TargetContent', '')
                         replacement = args.get('ReplacementContent', '')
                         
-                        if 'java' in filepath or 'pom.xml' in filepath:
+                        if 'jsx' in filepath or 'md' in filepath:
                             target_content = target_content.replace(r'\\', '\\')
                             replacement = replacement.replace(r'\\', '\\')
                             
