@@ -58,7 +58,7 @@ public class GeminiProvider implements LLMProvider {
                 ObjectNode parts = objectMapper.createObjectNode();
                 parts.put("text", systemPrompt);
                 systemInstruction.set("parts", objectMapper.createArrayNode().add(parts));
-                requestBody.set("system_instruction", systemInstruction);
+                requestBody.set("systemInstruction", systemInstruction);
             }
 
             ArrayNode contentsArray = objectMapper.createArrayNode();
