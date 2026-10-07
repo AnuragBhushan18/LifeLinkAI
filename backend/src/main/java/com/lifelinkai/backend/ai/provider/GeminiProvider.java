@@ -19,13 +19,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GeminiProvider implements LLMProvider {
 
-    @Value("`${llm.provider.name:gemini`}")
+    @Value("${llm.provider.name:gemini}")
     private String providerName;
 
-    @Value("`${llm.model.name:gemini-1.5-flash`}")
+    @Value("${llm.model.name:gemini-1.5-flash}")
     private String modelName;
 
-    @Value("`${llm.api.key:`}")
+    @Value("${llm.api.key:}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
