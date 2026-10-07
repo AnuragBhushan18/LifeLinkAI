@@ -23,7 +23,8 @@ const AdminAIAssistant = () => {
             
             setMessages(prev => [...prev, { role: 'assistant', content: res.data.response, disclaimer: res.data.disclaimer }]);
         } catch (err) {
-            setMessages(prev => [...prev, { role: 'assistant', content: "Error executing admin query." }]);
+            const errorMsg = err.response?.data?.message || err.message || "Unknown error";
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
         } finally {
             setLoading(false);
         }
